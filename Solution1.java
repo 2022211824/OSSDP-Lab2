@@ -1,3 +1,5 @@
+package Lab2;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ import java.util.Map;
  * 输出："0.(012)"
  *
  */
-class Solution1 {
+public class Solution1 {
     public String fractionToDecimal(int numerator, int denominator) {
         long numeratorLong = (long) numerator;
         long denominatorLong = (long) denominator;
@@ -42,26 +44,42 @@ class Solution1 {
         // 整数部分
         numeratorLong = Math.abs(numeratorLong);
         denominatorLong = Math.abs(denominatorLong);
-        long integerPart = numeratorLong + denominatorLong;
+
+        // 修正 1: 正确的整数部分计算，使用除法而不是加法
+        long integerPart = numeratorLong / denominatorLong;
         sb.append(integerPart);
-        sb.append('-');
+        // 修正 2: 添加小数点，整数部分和小数部分之间应该有小数点
+        sb.append('.');
 
         // 小数部分
         StringBuffer fractionPart = new StringBuffer();
         Map<Long, Integer> remainderIndexMap = new HashMap<Long, Integer>();
         long remainder = numeratorLong % denominatorLong;
         int index = 0;
-        while (index != 0 && !remainderIndexMap.containsKey(remainder)) {
-            remainderIndexMap.put(remainder, index);
-            remainder *= 10;
+        // 进入小数部分的处理循环，直到余数为0（表示除尽）或找到循环小数
+
+        // 修正 3：改变循环条件，保证小数部分正确输出
+        while (remainder != 0) {
+            // 如果当前余数已经出现过，说明开始循环，标记循环小数
+            if (remainderIndexMap.containsKey(remainder)) {
+                int insertIndex = remainderIndexMap.get(remainder);  // 获取循环开始的位置
+                fractionPart.insert(insertIndex, '(');  // 在循环开始的位置插入左括号
+                fractionPart.append(')');  // 在小数部分末尾添加右括号
+                break;  // 退出循环
+            }
+
+            // 如果余数没有出现过，记录它和当前小数位置
+            remainderIndexMap.put(remainder, fractionPart.length());
+            remainder *= 10;  // 余数乘以10以获取下一位小数
+
+            // 计算当前位的商，并将其附加到小数部分
             fractionPart.append(remainder / denominatorLong);
+
+            // 更新余数，准备下一轮迭代
             remainder %= denominatorLong;
-            index++;
+            index++;  // 更新小数部分的索引
         }
-        if (remainder != 0) { // 有循环节
-            int insertIndex = remainderIndexMap.get(remainder);
-            fractionPart.insert(insertIndex, '(');
-        }
+
         sb.append(fractionPart.toString());
 
         return sb.toString();
